@@ -13,7 +13,7 @@ def hello_world():
   
 @app.route("/contact/")
 def MaPremiereAPI():
-    return "<h2>Ma page de contact</h2>"
+    return render_template("contact.html")
 
 @app.route('/tawarano/')
 def meteo():
@@ -34,6 +34,29 @@ def mongraphique():
 @app.route("/histogramme/")
 def monhistogramme():
     return render_template("histogramme.html")
+
+
+@app.route('/extract-minutes/<date_string>')
+def extract_minutes(date_string):
+    response = urlopen('https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits')
+    raw_content = response.read()
+    json_content = json.loads(raw_content.decode('utf-8'))
+    results = []
+    for list_element in json_content.get('list', []):
+        dt_value = list_element.get('dt')
+        temp_day_value = list_element.get('main', {}).get('temp') - 273.15 # Conversion de Kelvin en °c 
+        results.append({'Jour': dt_value, 'temp': temp_day_value})
+    return jsonify(results=results)
+    
+    date_object = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%SZ')
+    minutes = date_object.minute
+    return jsonify({'minutes': minutes})
+
+@app.route('/commits/')
+def commits_minutes():
+    return render_template("commits.html")
+        
+
   
 if __name__ == "__main__":
   app.run(debug=True)
